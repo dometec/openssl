@@ -24,7 +24,7 @@ extern "C" {
  * 0x00905100), between 0.9.5 and 0.9.6 the coding of the patch level
  * part is slightly different, by setting the highest bit.  This means
  * that 0.9.5a looks like this: 0x0090581f.  At 0.9.6, we can start
- * with 0x0090600S...
+ * with 0x0090600S...s
  *
  * (Prior to 0.9.3-dev a different scheme was used: 0.9.2b is 0x0922.)
  * (Prior to 0.9.5a beta1, a different scheme was used: MMNNFFRBB for
@@ -34,7 +34,7 @@ extern "C" {
 # ifdef OPENSSL_FIPS
 #  define OPENSSL_VERSION_TEXT    "OpenSSL 1.0.2g-fips  1 Mar 2016"
 # else
-#  define OPENSSL_VERSION_TEXT    "OpenSSL 1.0.2g  1 Mar 2016 - Comelit"
+#  define OPENSSL_VERSION_TEXT    "OpenSSL 1.0.2g  1 Mar 2016 - 14 Jan 2017 - MTL Comelit"
 # endif
 # define OPENSSL_VERSION_PTEXT   " part of " OPENSSL_VERSION_TEXT
 
