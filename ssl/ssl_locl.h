@@ -490,15 +490,15 @@
 # define SSL_CLIENT_USE_TLS1_2_CIPHERS(s)        \
                 ((SSL_IS_DTLS(s) && s->client_version <= DTLS1_2_VERSION) || \
                 (!SSL_IS_DTLS(s) && s->client_version >= TLS1_2_VERSION))
-                
-#ifndef OPENSSL_NO_TLSEXT
-#define SSL_USE_MAX_FRAGMENT_LENGTH_EXT(s)        \
+
+# ifndef OPENSSL_NO_TLSEXT
+    # define SSL_USE_MAX_FRAGMENT_LENGTH_EXT(s)        \
                 (s->session) && \
                 ((s->session->tlsext_max_fragment_length >= TLSEXT_max_fragment_length_2_TO_9) && \
                 (s->session->tlsext_max_fragment_length <= TLSEXT_max_fragment_length_2_TO_12))
-#define SSL_GET_MAX_FRAGMENT_LENGTH(s)        \
+    # define SSL_GET_MAX_FRAGMENT_LENGTH(s)        \
                 (2 << (7 + s->session->tlsext_max_fragment_length))
-#endif
+# endif
 
 
 /* Mostly for SSLv3 */

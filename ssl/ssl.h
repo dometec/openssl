@@ -1080,7 +1080,7 @@ struct ssl_ctx_st {
     /* TLS extensions servername callback */
     int (*tlsext_servername_callback) (SSL *, int *, void *);
     void *tlsext_servername_arg;
-    /* RFC 4366 Maximum Fragment Length Negotiation */ 
+    /* RFC 4366 Maximum Fragment Length Negotiation */
     char tlsext_max_fragment_length;
     /* RFC 4507 session ticket keys */
     unsigned char tlsext_tick_key_name[16];
@@ -1619,6 +1619,15 @@ struct ssl_st {
     /* OCSP response received or to be sent */
     unsigned char *tlsext_ocsp_resp;
     int tlsext_ocsp_resplen;
+    /* Maximum Fragment Length as per RFC 4366.
+     If this member contains one of the allowed values (1-4)
+     then we should include Maximum Fragment Length Negotiation
+     extension in Client Hello.
+     Please note that value of this member does not have direct
+     effect. The actual (binding) value is stored in SSL_SESSION,
+     as this extension is optional on server side.
+    */
+    char tlsext_max_fragment_length;
     /* RFC4507 session ticket expected to be received or sent */
     int tlsext_ticket_expected;
 #   ifndef OPENSSL_NO_EC
@@ -1948,6 +1957,8 @@ DECLARE_PEM_rw(SSL_SESSION, SSL_SESSION)
 #   define SSL_CTRL_GET_TLS_EXT_HEARTBEAT_PENDING          86
 #   define SSL_CTRL_SET_TLS_EXT_HEARTBEAT_NO_REQUESTS      87
 #  endif
+#  define SSL_CTRL_SET_TLSEXT_MAX_FRAGMENT_LENGTH          120
+#  define SSL_CTRL_GET_TLSEXT_MAX_FRAGMENT_LENGTH          121
 # endif                         /* OPENSSL_NO_TLSEXT */
 # define DTLS_CTRL_GET_TIMEOUT           73
 # define DTLS_CTRL_HANDLE_TIMEOUT        74
@@ -3075,6 +3086,7 @@ void ERR_load_SSL_strings(void);
 # define SSL_R_SSL3_EXT_INVALID_ECPOINTFORMAT             321
 # define SSL_R_SSL3_EXT_INVALID_SERVERNAME                319
 # define SSL_R_SSL3_EXT_INVALID_SERVERNAME_TYPE           320
+# define SSL_R_SSL3_EXT_INVALID_MAX_FRAGMENT_LENGTH       393
 # define SSL_R_SSL3_SESSION_ID_TOO_LONG                   300
 # define SSL_R_SSL3_SESSION_ID_TOO_SHORT                  222
 # define SSL_R_SSLV3_ALERT_BAD_CERTIFICATE                1042
