@@ -557,6 +557,11 @@ struct ssl_session_st {
     struct ssl_session_st *prev, *next;
 #  ifndef OPENSSL_NO_TLSEXT
     char *tlsext_hostname;
+    /* Maximum Fragment Length as per RFC 4366.
+     * If this value does not contain RFC 4366 allowed values (1-4)
+     * then either the Maximum Fragment Length Negotiation failed
+     * or was not performed at all. */
+    char tlsext_max_fragment_length;
 #   ifndef OPENSSL_NO_EC
     size_t tlsext_ecpointformatlist_length;
     unsigned char *tlsext_ecpointformatlist; /* peer's list */
@@ -1075,6 +1080,8 @@ struct ssl_ctx_st {
     /* TLS extensions servername callback */
     int (*tlsext_servername_callback) (SSL *, int *, void *);
     void *tlsext_servername_arg;
+    /* RFC 4366 Maximum Fragment Length Negotiation */ 
+    char tlsext_max_fragment_length;
     /* RFC 4507 session ticket keys */
     unsigned char tlsext_tick_key_name[16];
     unsigned char tlsext_tick_hmac_key[16];

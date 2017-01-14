@@ -219,6 +219,8 @@ static int c_showcerts = 0;
 static char *keymatexportlabel = NULL;
 static int keymatexportlen = 20;
 
+static char maxfraglen=0;
+
 static void sc_usage(void);
 static void print_stuff(BIO *berr, SSL *con, int full);
 #ifndef OPENSSL_NO_TLSEXT
@@ -447,6 +449,7 @@ static void sc_usage(void)
                " -keymatexport label   - Export keying material using label\n");
     BIO_printf(bio_err,
                " -keymatexportlen len  - Export len bytes of keying material (default 20)\n");
+    BIO_printf(bio_err," -maxfraglen len       - Enable Maximum Fragment Length Negotiation (len values: 512, 1024, 2048 and 4096)\n");
 }
 
 #ifndef OPENSSL_NO_TLSEXT
@@ -1126,6 +1129,26 @@ int MAIN(int argc, char **argv)
             keymatexportlen = atoi(*(++argv));
             if (keymatexportlen == 0)
                 goto bad;
+        } else if (strcmp(*argv,"-maxfraglen") == 0) {
+            int len;
+            if (--argc < 1) goto bad;
+            len=atoi(*(argv));
+            switch (len) {
+                case 512:
+                        maxfraglen=TLSEXT_max_fragment_length_2_TO_9;
+                        break;
+                case 1024:
+                        maxfraglen=TLSEXT_max_fragment_length_2_TO_10;
+                        break;
+                case 2048:
+                        maxfraglen=TLSEXT_max_fragment_length_2_TO_11;
+                        break;
+                case 4096:
+                        maxfraglen=TLSEXT_max_fragment_length_2_TO_12;
+                        break;
+                default:
+                        goto bad;
+                        }
         } else {
             BIO_printf(bio_err, "unknown option %s\n", *argv);
             badop = 1;
@@ -1379,6 +1402,10 @@ int MAIN(int argc, char **argv)
     }
 # endif
 #endif
+
+    if (maxfraglen) {
+        SSL_CTX_set_tlsext_max_fragment_length(ctx, maxfraglen);
+    }
 
     con = SSL_new(ctx);
     if (sess_in) {

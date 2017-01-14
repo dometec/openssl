@@ -553,6 +553,16 @@ static int ssl3_get_record(SSL *s)
         goto f_err;
     }
 
+    #ifndef OPENSSL_NO_TLSEXT
+    if (SSL_USE_MAX_FRAGMENT_LENGTH_EXT(s)) {
+        if (rr->length > SSL_GET_MAX_FRAGMENT_LENGTH(s)+extra) {
+            al=SSL_AD_RECORD_OVERFLOW;
+            SSLerr(SSL_F_SSL3_GET_RECORD,SSL_R_PACKET_LENGTH_TOO_LONG);
+            goto f_err;
+        }
+    }
+    #endif
+
     rr->off = 0;
     /*-
      * So at this point the following is true
@@ -686,6 +696,13 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
         tot += i;               /* this might be last fragment */
     }
 #if !defined(OPENSSL_NO_MULTIBLOCK) && EVP_CIPH_FLAG_TLS1_1_MULTIBLOCK
+    #ifndef OPENSSL_NO_TLSEXT
+        max_send_fragment = s->max_send_fragment;
+        if (SSL_USE_MAX_FRAGMENT_LENGTH_EXT(s)) {
+            if (max_send_fragment > SSL_GET_MAX_FRAGMENT_LENGTH(s))
+                max_send_fragment = SSL_GET_MAX_FRAGMENT_LENGTH(s);
+        }
+    #endif
     /*
      * Depending on platform multi-block can deliver several *times*
      * better performance. Downside is that it has to allocate
@@ -693,7 +710,7 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
      * compromise is considered worthy.
      */
     if (type == SSL3_RT_APPLICATION_DATA &&
-        len >= 4 * (int)(max_send_fragment = s->max_send_fragment) &&
+        len >= 4 * (int)(max_send_fragment) &&
         s->compress == NULL && s->msg_callback == NULL &&
         SSL_USE_EXPLICIT_IV(s) &&
         EVP_CIPHER_flags(s->enc_write_ctx->cipher) &
@@ -826,6 +843,13 @@ int ssl3_write_bytes(SSL *s, int type, const void *buf_, int len)
             nw = s->max_send_fragment;
         else
             nw = n;
+
+        #ifndef OPENSSL_NO_TLSEXT
+            if (SSL_USE_MAX_FRAGMENT_LENGTH_EXT(s)) {
+                if (nw > SSL_GET_MAX_FRAGMENT_LENGTH(s))
+                    nw = SSL_GET_MAX_FRAGMENT_LENGTH(s);
+            }
+        #endif
 
         i = do_ssl3_write(s, type, &(buf[tot]), nw, 0);
         if (i <= 0) {

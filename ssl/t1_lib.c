@@ -1294,6 +1294,17 @@ unsigned char *ssl_add_clienthello_tlsext(SSL *s, unsigned char *buf,
         ret += size_str;
     }
 
+    /* Add Max Fragment Length extension if user enabled it. */
+    if ((s->tlsext_max_fragment_length >= TLSEXT_max_fragment_length_2_TO_9) &&
+        (s->tlsext_max_fragment_length <= TLSEXT_max_fragment_length_2_TO_12)) {
+        if ((limit - ret - 5) < 0) return NULL;
+
+        s2n(TLSEXT_TYPE_max_fragment_length,ret);
+        s2n(1,ret);
+        *(ret++) = (unsigned char) s->tlsext_max_fragment_length;
+    }
+
+
     /* Add RI if renegotiating */
     if (s->renegotiate) {
         int el;
@@ -1633,6 +1644,15 @@ unsigned char *ssl_add_serverhello_tlsext(SSL *s, unsigned char *buf,
 
         s2n(TLSEXT_TYPE_server_name, ret);
         s2n(0, ret);
+    }
+
+    /* If client sent Max Fragment Length extension accept it by replying back. */
+    if (SSL_USE_MAX_FRAGMENT_LENGTH_EXT(s)) {
+        if ((limit - ret - 5) < 0) return NULL;
+
+        s2n(TLSEXT_TYPE_max_fragment_length,ret);
+        s2n(1,ret);
+        *(ret++) = (unsigned char) s->session->tlsext_max_fragment_length;
     }
 
     if (s->s3->send_connection_binding) {
@@ -2127,7 +2147,20 @@ static int ssl_scan_clienthello_tlsext(SSL *s, unsigned char **p,
             if (dsize != 0)
                 goto err;
 
+        } else if (type == TLSEXT_TYPE_max_fragment_length) {
+            if (size != 1 ||
+                (data[0] < TLSEXT_max_fragment_length_2_TO_9) ||
+                (data[0] > TLSEXT_max_fragment_length_2_TO_12)) {
+                    *al = SSL_AD_ILLEGAL_PARAMETER;
+                    return 0;
+            }
+
+            /* data[0] contains valid max fragment length.
+             * Store it in session, so it'll become binding for us
+             * and we'll include it in Server Hello. */
+            s->session->tlsext_max_fragment_length = data[0];
         }
+
 # ifndef OPENSSL_NO_SRP
         else if (type == TLSEXT_TYPE_srp) {
             if (size == 0 || ((len = data[0])) != (size - 1))
@@ -2565,7 +2598,22 @@ static int ssl_scan_serverhello_tlsext(SSL *s, unsigned char **p,
                 return 0;
             }
             tlsext_servername = 1;
-        }
+        } else if (type == TLSEXT_TYPE_max_fragment_length) {
+            if (size != 1 || (data[0] < TLSEXT_max_fragment_length_2_TO_9) ||
+               (data[0] > TLSEXT_max_fragment_length_2_TO_12)) {
+                *al = SSL_AD_ILLEGAL_PARAMETER;
+                return 0;
+            }
+
+            if (data[0] == s->tlsext_max_fragment_length) {
+                /* Maximum Fragment Length Negotiation succeeded.
+                * The Negotiated Maximum Fragment Length is binding now. */
+                s->session->tlsext_max_fragment_length = data[0];
+            } else {
+                *al = SSL_AD_ILLEGAL_PARAMETER;
+                return 0;
+            } 
+         }
 # ifndef OPENSSL_NO_EC
         else if (type == TLSEXT_TYPE_ec_point_formats) {
             unsigned char *sdata = data;
