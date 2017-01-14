@@ -1130,9 +1130,9 @@ int MAIN(int argc, char **argv)
             if (keymatexportlen == 0)
                 goto bad;
         } else if (strcmp(*argv,"-maxfraglen") == 0) {
-            int len;
-            if (--argc < 1) goto bad;
-            len=atoi(*(argv));
+            if (--argc < 1)
+                goto bad;
+            int len = atoi(*(++argv));
             switch (len) {
                 case 512:
                         maxfraglen=TLSEXT_max_fragment_length_2_TO_9;
@@ -1148,7 +1148,7 @@ int MAIN(int argc, char **argv)
                         break;
                 default:
                         goto bad;
-                        }
+            }
         } else {
             BIO_printf(bio_err, "unknown option %s\n", *argv);
             badop = 1;
@@ -1403,9 +1403,8 @@ int MAIN(int argc, char **argv)
 # endif
 #endif
 
-    if (maxfraglen) {
+    if (maxfraglen)
         SSL_CTX_set_tlsext_max_fragment_length(ctx, maxfraglen);
-    }
 
     con = SSL_new(ctx);
     if (sess_in) {

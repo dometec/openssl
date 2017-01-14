@@ -209,6 +209,7 @@ SSL_SESSION *SSL_SESSION_new(void)
     ss->compress_meth = 0;
 #ifndef OPENSSL_NO_TLSEXT
     ss->tlsext_hostname = NULL;
+    ss->tlsext_max_fragment_length = 0; 
 # ifndef OPENSSL_NO_EC
     ss->tlsext_ecpointformatlist_length = 0;
     ss->tlsext_ecpointformatlist = NULL;

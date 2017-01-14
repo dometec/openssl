@@ -341,10 +341,10 @@ int SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain);
 #  define SSL_set_tlsext_host_name(s,name) \
 SSL_ctrl(s,SSL_CTRL_SET_TLSEXT_HOSTNAME,TLSEXT_NAMETYPE_host_name,(char *)name)
 
-#define SSL_set_tlsext_max_fragment_length(s, type) \
+# define SSL_set_tlsext_max_fragment_length(s, type) \
 SSL_ctrl(s,SSL_CTRL_SET_TLSEXT_MAX_FRAGMENT_LENGTH,type,NULL)
 
-#define SSL_get_tlsext_max_fragment_length(s) \
+# define SSL_get_tlsext_max_fragment_length(s) \
 SSL_ctrl(s,SSL_CTRL_GET_TLSEXT_MAX_FRAGMENT_LENGTH,0,NULL)
 
 #  define SSL_set_tlsext_debug_callback(ssl, cb) \

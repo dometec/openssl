@@ -353,6 +353,7 @@ SSL *SSL_new(SSL_CTX *ctx)
     CRYPTO_add(&ctx->references, 1, CRYPTO_LOCK_SSL_CTX);
     s->ctx = ctx;
 #ifndef OPENSSL_NO_TLSEXT
+    s->tlsext_max_fragment_length = ctx->tlsext_max_fragment_length;
     s->tlsext_debug_cb = 0;
     s->tlsext_debug_arg = NULL;
     s->tlsext_ticket_expected = 0;
@@ -1988,6 +1989,7 @@ SSL_CTX *SSL_CTX_new(const SSL_METHOD *meth)
     ret->max_send_fragment = SSL3_RT_MAX_PLAIN_LENGTH;
 
 #ifndef OPENSSL_NO_TLSEXT
+    ret->tlsext_max_fragment_length = 0; 
     ret->tlsext_servername_callback = 0;
     ret->tlsext_servername_arg = NULL;
     /* Setup RFC4507 ticket keys */
